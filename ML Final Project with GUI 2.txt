@@ -1,0 +1,573 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+%matplotlib inline
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
+from sklearn.linear_model import LogisticRegression
+from sklearn .compose import make_column_transformer
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn import datasets, neighbors
+from mlxtend.plotting import plot_decision_regions
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_regression
+from sklearn.neighbors import KNeighborsRegressor
+
+
+
+from sklearn.linear_model import Ridge
+
+# from sklearn.datasets import load_boston
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import StandardScaler
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import BaggingClassifier
+
+
+DATA = pd.read_csv("ML.csv") #read data
+
+
+#****************************************************************************clear data *************************************************
+
+DATA = DATA.drop(columns=['customerID'])
+
+DATA['TotalCharges'] = pd.to_numeric( DATA['TotalCharges'], errors='coerce' ) #CONVERT TO int case its object
+
+
+
+DATA['TotalCharges'] = DATA['TotalCharges'].fillna(DATA['TotalCharges'].median()  ) #fill the null data with median
+
+
+#*********************************************************************ENCOD DATA*********************************************************
+
+labelencoder = LabelEncoder()
+
+DATA['Churn'] =labelencoder.fit_transform(DATA['Churn'])
+
+
+DATA['SeniorCitizen']=DATA['SeniorCitizen'].astype('object') #convert to object case its int to encode it letar
+
+DATA['tenure']=DATA['tenure'].astype('int') #convert to int case its object
+
+
+categorical = list(DATA.select_dtypes(include=['object']).columns)  #add  columns to object if any column its object type will add it
+
+OneHotEncoder = OneHotEncoder(drop='first')
+
+transformer = make_column_transformer(( OneHotEncoder , categorical), remainder='passthrough',verbose_feature_names_out=False)
+
+train_enc = transformer.fit_transform(DATA)
+
+df_train_enc = pd.DataFrame(train_enc, columns=transformer.get_feature_names_out())
+
+df_train_enc = df_train_enc.iloc[:, 27:]
+
+#***********************************************************set data ************************************************************
+y =df_train_enc[['Churn']]
+
+df_train_enc = df_train_enc.drop(columns=['Churn'])
+
+x=df_train_enc
+
+
+# df_train_enc.head().T
+
+#******************************************splite **********************************************************************
+
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,random_state=0)
+
+x_train = np.ascontiguousarray(x_train)
+x_test = np.ascontiguousarray(x_test)
+y_train = np.ascontiguousarray(y_train)
+y_test = np.ascontiguousarray(y_test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import tkinter as tk
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.model_selection import cross_val_score
+from tkinter import scrolledtext
+from sklearn.linear_model import Ridge
+
+from sklearn.model_selection import ShuffleSplit 
+from sklearn.model_selection import learning_curve
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
+
+from sklearn.datasets import make_classification
+from sklearn.neighbors import KNeighborsClassifier
+
+import pickle
+
+
+
+class DataProcessor:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("MachineLearning")
+
+        self.data = None
+        self.model = None
+        self.cv_button = None
+        self.accuracy_button = None
+        self.prediction_button = None
+        self.back_button = None
+        self.text_area = None
+        
+        self.welcome_label = tk.Label(self.master, text="Welcome to our small Program!", font=("Arial", 20))
+        self.welcome_label.pack(pady=20)
+        
+        self.prompt_label = tk.Label(self.master, text="Please choose one of the following Models:", font=("Arial", 12))
+        self.prompt_label.place(x=20, y=150)
+
+
+        self.create_main_buttons()
+
+    def create_main_buttons(self):
+        self.button_frame = tk.Frame(self.master)
+        self.button_frame.pack(pady=150)
+
+        self.logistic_button = tk.Button(self.button_frame, text="Logistic Regression Model", command=self.choose_logistic_model, font=("Arial", 12), bg="lightblue", fg="black")
+        self.logistic_button.pack(side=tk.LEFT, padx=3)
+
+        self.knn_button = tk.Button(self.button_frame, text="KNN Model", command=self.choose_knn_model, font=("Arial", 12), bg="lightgreen", fg="black")
+        self.knn_button.pack(side=tk.LEFT, padx=3)
+
+        self.bagging_button = tk.Button(self.button_frame, text="Bagging Model", command=self.choose_bagging_model, font=("Arial", 12), bg="lightcoral", fg="black")
+        self.bagging_button.pack(side=tk.LEFT, padx=3)
+        
+        self.bagging_button = tk.Button(self.button_frame, text="Ridge Model", command=self.choose_ridge_model, font=("Arial", 12), bg="lightgray", fg="black")
+        self.bagging_button.pack(side=tk.LEFT, padx=3)
+
+        
+        
+        
+    def create_sub_buttons(self):
+        self.button_frame.destroy()
+        self.button_frame = tk.Frame(self.master)
+        self.button_frame.pack(pady=150)
+        
+        
+        
+        self.welcome_label.pack_forget()
+        self.prompt_label.place_forget() 
+        
+        self.prompt_labe2 = tk.Label(self.master, text="Please choose one of the following:", font=("Arial", 12))
+        self.prompt_labe2.place(x=20, y=100)
+
+        
+        
+        self.cv_button = tk.Button(self.button_frame, text="Cross-Validation", command=self.cross_validate, font=("Arial", 12), bg="lightyellow", fg="black", state=tk.DISABLED)
+        self.cv_button.pack(side=tk.LEFT, padx=3)
+
+        self.accuracy_button = tk.Button(self.button_frame, text="Accuracy", command=self.calculate_accuracy, font=("Arial", 12), bg="lightyellow", fg="black", state=tk.DISABLED)
+        self.accuracy_button.pack(side=tk.LEFT, padx=3)
+
+        self.prediction_button = tk.Button(self.button_frame, text="Prediction", command=self.predict, font=("Arial", 12), bg="lightyellow", fg="black", state=tk.DISABLED)
+        self.prediction_button.pack(side=tk.LEFT, padx=3)
+        
+
+        if isinstance(self.model, LogisticRegression):
+            self.graph_button = tk.Button(self.button_frame, text="Graph", command=self.plot_graph_LR, font=("Arial", 12), bg="lightblue", fg="black")
+            self.graph_button.pack(side=tk.LEFT, padx=5)
+            
+            self.prediction_button = tk.Button(self.button_frame, text="Predict Output", command=self.predict_logistic_output, font=("Arial", 12), bg="lightblue", fg="black", state=tk.DISABLED)
+            self.prediction_button.pack(side=tk.LEFT, padx=3)
+            
+            self.update_sub_buttons() 
+            
+            
+        if isinstance(self.model,KNeighborsClassifier):
+            self.graph_button = tk.Button(self.button_frame, text="Graph", command=self.plot_graph_KNN, font=("Arial", 12), bg="lightgreen", fg="black")
+            self.graph_button.pack(side=tk.LEFT, padx=5)
+            self.update_sub_buttons() 
+            
+        
+        self.back_button = tk.Button(self.button_frame, text="Back", command=self.go_back, font=("Arial", 12), bg="black", fg="white")
+        self.back_button.pack(side=tk.LEFT, padx=5)
+            
+            
+        self.close_button = tk.Button(self.button_frame, text="Close The Program", command=self.master.destroy, font=("Arial", 12), bg="red", fg="white")
+        self.close_button.pack(side=tk.LEFT, padx=5)
+        
+
+        # Create a scrolledtext widget to display results
+        self.text_area = scrolledtext.ScrolledText(self.master, width=50, height=5, wrap=tk.WORD)
+        self.text_area.pack(pady=10)
+        
+        
+        
+
+        self.update_sub_buttons()  # Call update_sub_buttons after creating the text area
+
+    def choose_logistic_model(self):
+        self.model = LogisticRegression()
+        self.cv_method = self.cross_validate_logistic
+        self.accuracy_method = self.calculate_accuracy_logistic
+        self.predict_method = self.predict_logistic
+        
+        regressor = LogisticRegression()
+        regressor.fit(x_train,y_train)
+        filename = 'the_best_module.sav'
+        pickle.dump(regressor, open(filename, 'wb') )
+        
+        self.create_sub_buttons()
+
+    def choose_knn_model(self):
+        self.model = KNeighborsClassifier()
+        self.cv_method = self.cross_validate_knn
+        self.accuracy_method = self.calculate_accuracy_knn
+        self.predict_method = self.predict_knn
+        self.create_sub_buttons()
+
+    def choose_bagging_model(self):
+        self.model = BaggingClassifier()
+        self.cv_method = self.cross_validate_bagging
+        self.accuracy_method = self.calculate_accuracy_bagging
+        self.predict_method = self.predict_bagging
+        self.create_sub_buttons()
+        
+        
+    def choose_ridge_model(self):
+        self.model = Ridge()
+        self.cv_method = self.cross_validate_ridge
+        self.accuracy_method = self.calculate_accuracy_ridge
+        self.predict_method = self.predict_ridge
+        self.create_sub_buttons()
+        
+        
+
+    def update_sub_buttons(self):
+        self.cv_button["state"] = tk.NORMAL
+        self.accuracy_button["state"] = tk.NORMAL
+        self.prediction_button["state"] = tk.NORMAL
+        
+        
+        
+        
+    def plot_graph_LR(self):
+        regressor = LogisticRegression()
+        regressor.fit(x_train, y_train)
+        
+        cv = ShuffleSplit(n_splits=4, test_size=0.2, random_state=0)
+        # Generate learning curves
+        train_sizes, train_scores, test_scores = learning_curve(
+            regressor, x , y, cv=cv, n_jobs=-1, train_sizes=np.linspace(.1, 1.0, 10),
+            scoring='accuracy'  # Change the scoring as necessary
+        )
+        # Calculate the average and standard deviation of the training and test scores
+        train_mean = np.mean(train_scores, axis=1)
+        train_std = np.std(train_scores, axis=1)
+        test_mean = np.mean(test_scores, axis=1)
+        test_std = np.std(test_scores, axis=1)
+        
+        # Create a new Tkinter Toplevel window for the plot
+        plot_window = tk.Toplevel(self.master)
+        plot_window.title("Learning Curve")
+        
+        # Create a matplotlib figure and subplot
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        
+        # Plot the learning curve
+        ax.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, color="r", alpha=0.1)
+        ax.fill_between(train_sizes, test_mean - test_std, test_mean + test_std, color="g", alpha=0.1)
+        ax.plot(train_sizes, train_mean, 'o-', color="r", label="Training score")
+        ax.plot(train_sizes, test_mean, 'o-', color="g", label="Cross-validation score")
+        ax.set_title("Learning Curve")
+        ax.set_xlabel("Training examples")
+        ax.set_ylabel("Score")
+        ax.legend(loc="best")
+        
+        # Create a canvas for the plot
+        canvas = FigureCanvasTkAgg(fig, master=plot_window)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        
+        # Add a toolbar for navigation (optional)
+        toolbar = NavigationToolbar2Tk(canvas, plot_window)
+        toolbar.update()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        
+        
+    def plot_graph_KNN(self):
+        x, y = make_classification(n_samples=100, n_features=2, n_classes=2,
+                                   n_clusters_per_class=1, n_redundant=0, random_state=42)
+        # Fit KNN classifier
+        knn = KNeighborsClassifier(n_neighbors=83)
+        knn.fit(x, y)
+
+        # Create a new Tkinter Toplevel window for the plot
+        plot_window = tk.Toplevel(self.master)
+        plot_window.title("K-Nearest Neighbors")
+
+        # Create a matplotlib figure and subplot
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+
+        # Plot data points
+        ax.scatter(x[:, 0], x[:, 1], c=y, cmap='coolwarm', marker='o', edgecolors='k', s=100)
+
+        # Create meshgrid to plot decision boundary
+        x_min, x_max = x[:, 0].min() - 1, x[:, 0].max() + 1
+        y_min, y_max = x[:, 1].min() - 1, x[:, 1].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02), np.arange(y_min, y_max, 0.02))
+
+        # Predict class labels for each point in meshgrid
+        Z = knn.predict(np.c_[xx.ravel(), yy.ravel()])
+
+        # Plot decision boundary
+        Z = Z.reshape(xx.shape)
+        ax.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+
+        # Add labels and title
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title('K-Nearest Neighbors')
+
+        # Create a canvas for the plot
+        canvas = FigureCanvasTkAgg(fig, master=plot_window)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        # Add a toolbar for navigation (optional)
+        toolbar = NavigationToolbar2Tk(canvas, plot_window)
+        toolbar.update()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1) 
+        
+        
+        
+    def predict(self):
+        if self.predict_method:
+            result = self.predict_method()
+            self.display_result("Prediction: " + str(result))
+        else:
+            self.display_result("Please select a model first.")
+
+    def calculate_accuracy(self):
+        if self.accuracy_method:
+            result = self.accuracy_method()
+            self.display_result("Accuracy: " + str(result))
+        else:
+            self.display_result("Please select a model first.")
+
+    def cross_validate(self):
+        if self.cv_method:
+            result = self.cv_method()
+            self.display_result("Cross-Validation: " + str(result))
+        else:
+            self.display_result("Please select a model first.")
+            
+            
+#     ////////////////////////////////////////////////// logistic /////////////////////////////////////////////////
+
+    def predict_logistic(self):
+        regressor = LogisticRegression()
+        regressor.fit(x_train,y_train)
+        y_pred  = regressor.predict(x_test)
+        return precision_score(y_test, y_pred)
+        
+        
+    def calculate_accuracy_logistic(self):
+        regressor = LogisticRegression()
+        regressor.fit(x_train,y_train)
+        y_pred  = regressor.predict(x_test)
+
+        return accuracy_score(y_test, y_pred)
+       
+
+
+    def cross_validate_logistic(self):
+        regressor = LogisticRegression()
+        regressor.fit(x_train, y_train)
+        cv_scores = cross_val_score(regressor, x_train, y_train, cv=4)
+        mean_cv_score = cv_scores.mean()
+        return  mean_cv_score
+    
+    
+    
+#     ////////////////////////////////////////////////// KNN  //////////////////////////////////////////////////////////////
+        
+    def predict_knn(self):
+       
+        knn = KNeighborsClassifier(n_neighbors=83)
+        knn.fit(x_train, y_train)
+        y_pred_knn = knn.predict(x_test)
+        return precision_score(y_test, y_pred_knn)
+
+
+    def calculate_accuracy_knn(self):
+    
+        knn = KNeighborsClassifier(n_neighbors=83)
+        knn.fit(x_train, y_train)
+        y_pred_knn = knn.predict(x_test)
+        return accuracy_score(y_test, y_pred_knn)
+
+
+    def cross_validate_knn(self):
+        
+        knn = KNeighborsClassifier(n_neighbors=83)
+        knn.fit(x_train, y_train)
+          
+        cv_scores = cross_val_score(knn, x_train, y_train, cv=4)
+        return cv_scores.mean()
+        
+        
+# //////////////////////////////////////////////// Bagging /////////////////////////////////////////////////////////////
+    def predict_bagging(self):
+        print("None")
+
+    def calculate_accuracy_bagging(self):
+        bag_model = BaggingClassifier(
+            base_estimator=DecisionTreeClassifier(),
+            n_estimators=100,
+            max_samples=0.8,
+            bootstrap=True,
+            oob_score=True,
+            random_state=0
+            )
+        bag_model.fit(x_train, y_train)
+        return bag_model.score(x_test, y_test) 
+
+    def cross_validate_bagging(self):
+        bag_model = BaggingClassifier(
+            base_estimator=DecisionTreeClassifier(),
+            n_estimators=100,
+            max_samples=0.8,
+            bootstrap=True,
+            oob_score=True,
+            random_state=0
+            )
+        bag_model.fit(x_train, y_train)
+        cv_scores = cross_val_score(bag_model, x_train, y_train, cv=4)
+        return cv_scores.mean()
+    
+    
+    # //////////////////////////////////////////////// Ridge /////////////////////////////////////////////////////////////
+    
+    def predict_ridge(self):
+        print("None")
+        
+
+    def calculate_accuracy_ridge(self):
+        ridge_model = Ridge(alpha=1)
+        ridge_model.fit(x_train, y_train)
+        y_pred = ridge_model.predict(x_test)
+        threshold = np.median(y_pred)
+        y_pred_classes = [1 if pred > threshold else 0 for pred in y_pred]
+        
+        accuracy = accuracy_score(y_test, y_pred_classes)
+        return accuracy
+
+        
+    def cross_validate_ridge(self):
+        ridge_model = Ridge(alpha=1)
+        ridge_model.fit(x_train, y_train)
+        cv_scores = cross_val_score(ridge_model, x_train, y_train, cv=4)
+        return cv_scores.mean()
+    
+    
+    
+    
+    def display_result(self, result):
+        self.text_area.configure(state='normal')  # Enable editing
+        self.text_area.insert(tk.END, result + "\n")  # Insert result
+        self.text_area.configure(state='disabled')  # Disable editing
+        
+        
+        
+    def go_back(self):
+        if hasattr(self, 'button_frame'):
+            self.button_frame.destroy()  # Destroy the button frame if it exists
+        if hasattr(self, 'text_area'):
+            self.text_area.destroy()  # Destroy the text area if it exists
+        if hasattr(self, 'prompt_labe2'):
+            self.prompt_labe2.destroy()  # Remove the "Please choose one of the following:" label if it exists 
+            self.welcome_label.pack(pady=20)
+            self.prompt_label.place(x=20, y=150)
+            self.create_main_buttons()
+            
+            
+            
+            
+    def predict_logistic_output(self):
+        # Define input_window within the method scope
+        input_window = tk.Toplevel(self.master)
+        input_window.title("Enter Input")
+        # Create entry fields for user input
+        tk.Label(input_window, text="Tenure:").grid(row=0, column=0)
+        tk.Label(input_window, text="MonthlyCharges:").grid(row=1, column=0)
+        tk.Label(input_window, text="TotalCharges:").grid(row=2, column=0)
+        input1_entry = tk.Entry(input_window)
+        input1_entry.grid(row=0, column=1)
+        input2_entry = tk.Entry(input_window)
+        input2_entry.grid(row=1, column=1)
+        input3_entry = tk.Entry(input_window)
+        input3_entry.grid(row=2, column=1)
+        
+        # Function to predict based on user input
+        
+        def predict():
+            # Retrieve user input
+            input1 = float(input1_entry.get())
+            input2 = float(input2_entry.get()) 
+            input3 = float(input3_entry.get()) 
+            # Load the pre-trained logistic regression model
+            filename = 'the_best_module.sav'
+            loaded_model = pickle.load(open(filename, 'rb'))
+            # Perform prediction
+            prediction = loaded_model.predict([[input1, input2, input3]])
+            # Display prediction in the text area
+            self.display_result("Prediction: " + str(prediction))
+        
+            
+        # Button to trigger prediction
+        predict_button = tk.Button(input_window, text="Predict", command=predict)
+        predict_button.grid(row=3, columnspan=2)
+        # Add "Close" button to close the input window
+        close_button = tk.Button(input_window, text="Close", command=input_window.destroy)
+        close_button.grid(row=4, columnspan=2)
+    
+    
+    
+        
+        
+def main():
+    root = tk.Tk()
+#     root.configure(bg="lightgray")
+    app = DataProcessor(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
